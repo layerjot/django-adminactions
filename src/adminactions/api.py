@@ -103,10 +103,26 @@ def merge(master, other, fields=None, commit=False, m2m=None, related=None):  # 
                             all_related[name].append((rel_fieldname, r))
 
         if commit:
+            bulk_update_models = dict()
             for name, elements in list(all_related.items()):
                 for rel_fieldname, element in elements:
+                    model = element.__class__
+                    model_name = model.__name__
+
+                    if model_name not in bulk_update_models:
+                        bulk_update_models[model_name] = dict(model=model, objects=[], fields=[])
+                    bulk_update_models[model_name]['objects'].append(element)
+                    if rel_fieldname not in bulk_update_models[model_name]['fields']:
+                        bulk_update_models[model_name]['fields'].append(rel_fieldname)
+
                     setattr(element, rel_fieldname, master)
                     element.save()
+
+            for key, value in bulk_update_models.items():
+                fields = value.get('fields')
+                model = value.get('model')
+                objects = value.get('objects')
+                model.objects.bulk_update(objects, update_fields=fields)
             other.delete()
             ignored_fields = get_ignored_fields(result._meta.model, 'MERGE_ACTION_IGNORED_FIELDS')
             for ig_field in ignored_fields:
