@@ -115,7 +115,7 @@ def merge(modeladmin, request, queryset):  # noqa
                     merge_kwargs['m2m'] = None
                 merge_kwargs['fields'] = merge_form.cleaned_data['field_names']
                 stored_pk = other.pk
-                api.merge(master, other, commit=True, **merge_kwargs)
+                api.merge(master, other, commit=False, **merge_kwargs)
                 other.pk = stored_pk
                 return (form.is_valid(), form, merge_kwargs)
             else:
