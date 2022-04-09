@@ -116,13 +116,12 @@ def merge(master, other, fields=None, commit=False, m2m=None, related=None):  # 
                         bulk_update_models[model_name]['fields'].append(rel_fieldname)
 
                     setattr(element, rel_fieldname, master)
-                    element.save()
 
             for key, value in bulk_update_models.items():
                 fields = value.get('fields')
                 model = value.get('model')
                 objects = value.get('objects')
-                model.objects.bulk_update(objects, update_fields=fields)
+                model.objects.bulk_update(objects, fields=fields, batch_size=300)
             other.delete()
             ignored_fields = get_ignored_fields(result._meta.model, 'MERGE_ACTION_IGNORED_FIELDS')
             for ig_field in ignored_fields:
